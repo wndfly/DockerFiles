@@ -14,13 +14,17 @@ ENV OPENCVSHARP_VERSION=4.5.3.20210821
 #COPY depends/* /
 
 RUN wget https://github.com/opencv/opencv/archive/${OPENCV_VERSION}.zip && \
+    unzip ${OPENCV_VERSION}.zip && rm ${OPENCV_VERSION}.zip && \
+    mv ${OPENCV_VERSION} opencv && \
 #RUN wget https://www.m.motiontek.cn/opencv/opencv-${OPENCV_VERSION}.zip && \
-    unzip opencv-${OPENCV_VERSION}.zip && rm opencv-${OPENCV_VERSION}.zip && \
-    mv opencv-${OPENCV_VERSION} opencv && \
+    #unzip opencv-${OPENCV_VERSION}.zip && rm opencv-${OPENCV_VERSION}.zip && \
+    #mv opencv-${OPENCV_VERSION} opencv && \
     wget https://github.com/opencv/opencv_contrib/archive/${OPENCV_VERSION}.zip && \
+    unzip ${OPENCV_VERSION}.zip && rm ${OPENCV_VERSION}.zip && \
+    mv ${OPENCV_VERSION} opencv_contrib && \
     #wget https://www.m.motiontek.cn/opencv/opencv_contrib-${OPENCV_VERSION}.zip && \
-    unzip opencv_contrib-${OPENCV_VERSION}.zip && rm opencv_contrib-${OPENCV_VERSION}.zip && \
-    mv opencv_contrib-${OPENCV_VERSION} opencv_contrib && \
+    #unzip opencv_contrib-${OPENCV_VERSION}.zip && rm opencv_contrib-${OPENCV_VERSION}.zip && \
+    #mv opencv_contrib-${OPENCV_VERSION} opencv_contrib && \
     cd opencv && mkdir build && cd build && \
     cmake -D OPENCV_EXTRA_MODULES_PATH=/opencv_contrib/modules \
     -D CMAKE_INSTALL_PREFIX=/opencv/install \
@@ -61,9 +65,11 @@ RUN wget https://github.com/opencv/opencv/archive/${OPENCV_VERSION}.zip && \
     -D WITH_ADE=OFF \
     -D OPENCV_ENABLE_NONFREE=ON .. && make -j$(nproc) && make install && ldconfig && cd / && \
     wget https://github.com/shimat/opencvsharp/archive/${OPENCVSHARP_VERSION}.zip && \
+    unzip ${OPENCVSHARP_VERSION}.zip && rm ${OPENCVSHARP_VERSION}.zip && \
+    mv ${OPENCVSHARP_VERSION} opencvsharp && \
     #wget https://www.m.motiontek.cn/opencv/opencvsharp-${OPENCVSHARP_VERSION}.zip && \
-    unzip opencvsharp-${OPENCVSHARP_VERSION}.zip && rm opencvsharp-${OPENCVSHARP_VERSION}.zip && \
-    mv opencvsharp-${OPENCVSHARP_VERSION} opencvsharp && \
+    #unzip opencvsharp-${OPENCVSHARP_VERSION}.zip && rm opencvsharp-${OPENCVSHARP_VERSION}.zip && \
+    #mv opencvsharp-${OPENCVSHARP_VERSION} opencvsharp && \
     mkdir /opencvsharp/make && cd /opencvsharp/make && \
     cmake -D CMAKE_INSTALL_PREFIX=/opencvsharp/make \
     -D OpenCV_DIR=/opencv/install/lib/cmake/opencv4 /opencvsharp/src && \
