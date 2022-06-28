@@ -4,13 +4,24 @@ MAINTAINER <wangming@motiontek.cn>
 
 WORKDIR /
 
+# # Configure timezone and locale
+# RUN echo "Aisa/Shanghai" > /etc/timezone && \
+#     dpkg-reconfigure -f noninteractive tzdata && \
+#     sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
+#     echo 'LANG="en_US.UTF-8"'>/etc/default/locale && \
+#     dpkg-reconfigure --frontend=noninteractive locales && \
+#     update-locale LANG=en_US.UTF-8
+
 RUN apt update && apt upgrade -y && \
-    apt install -y --no-install-recommends python3 python3-pip unzip wget cmake ffmpeg locales libgdiplus && \
-    apt-get clean && \
+    DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends unzip wget g++ gcc \
+    build-essential cmake python3 python3-pip python3-opencv libpython3-dev ffmpeg locales libgdiplus && \    
+    apt clean && \
     rm -rf /var/lib/apt/lists/*
 
+RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
+
 ENV OPENCV_VERSION=4.5.3
-ENV OPENCVSHARP_VERSION=4.5.3.20210821
+ENV OPENCVSHARP_VERSION=4.5.3.20211228
 
 #COPY depends/* /
 
@@ -69,6 +80,7 @@ RUN wget https://github.com/opencv/opencv/archive/${OPENCV_VERSION}.zip && \
     #unzip opencvsharp-${OPENCVSHARP_VERSION}.zip && rm opencvsharp-${OPENCVSHARP_VERSION}.zip && \
     mv opencvsharp-${OPENCVSHARP_VERSION} opencvsharp && \
     mkdir /opencvsharp/make && cd /opencvsharp/make && \
+    #cmake -D CMAKE_INSTALL_PREFIX=/opencvsharp/make /opencvsharp/src && \
     cmake -D CMAKE_INSTALL_PREFIX=/opencvsharp/make \
     -D OpenCV_DIR=/opencv/install/lib/cmake/opencv4 /opencvsharp/src && \
     make -j$(nproc) && make install && rm -rf /opencv && rm -rf /opencv_contrib && \
@@ -91,7 +103,7 @@ RUN python -c 'import mediapipe as mp; mp.solutions.pose._download_oss_pose_land
 #ENV HTTPS_PROXY=
 
 #RUN apt-get update && apt-get install -y --no-install-recommends locales libgdiplus && \
-RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
+#RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
 
 EXPOSE 8080/tcp
 #COPY . .
