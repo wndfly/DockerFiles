@@ -4,7 +4,8 @@ MAINTAINER <wangming@motiontek.cn>
 
 WORKDIR /
 
-RUN apt update && apt upgrade -y && apt install -y python3 python3-pip unzip wget cmake ffmpeg && \
+RUN apt update && apt upgrade -y && \
+    apt install -y --no-install-recommends python3 python3-pip unzip wget cmake ffmpeg locales libgdiplus && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -15,16 +16,14 @@ ENV OPENCVSHARP_VERSION=4.5.3.20210821
 
 RUN wget https://github.com/opencv/opencv/archive/${OPENCV_VERSION}.zip && \
     unzip ${OPENCV_VERSION}.zip && rm ${OPENCV_VERSION}.zip && \
-    mv ${OPENCV_VERSION} opencv && \
 #RUN wget https://www.m.motiontek.cn/opencv/opencv-${OPENCV_VERSION}.zip && \
     #unzip opencv-${OPENCV_VERSION}.zip && rm opencv-${OPENCV_VERSION}.zip && \
-    #mv opencv-${OPENCV_VERSION} opencv && \
+    mv opencv-${OPENCV_VERSION} opencv && \
     wget https://github.com/opencv/opencv_contrib/archive/${OPENCV_VERSION}.zip && \
-    unzip ${OPENCV_VERSION}.zip && rm ${OPENCV_VERSION}.zip && \
-    mv ${OPENCV_VERSION} opencv_contrib && \
+    unzip ${OPENCV_VERSION}.zip && rm ${OPENCV_VERSION}.zip && \    
     #wget https://www.m.motiontek.cn/opencv/opencv_contrib-${OPENCV_VERSION}.zip && \
     #unzip opencv_contrib-${OPENCV_VERSION}.zip && rm opencv_contrib-${OPENCV_VERSION}.zip && \
-    #mv opencv_contrib-${OPENCV_VERSION} opencv_contrib && \
+    mv opencv_contrib-${OPENCV_VERSION} opencv_contrib && \
     cd opencv && mkdir build && cd build && \
     cmake -D OPENCV_EXTRA_MODULES_PATH=/opencv_contrib/modules \
     -D CMAKE_INSTALL_PREFIX=/opencv/install \
@@ -65,11 +64,10 @@ RUN wget https://github.com/opencv/opencv/archive/${OPENCV_VERSION}.zip && \
     -D WITH_ADE=OFF \
     -D OPENCV_ENABLE_NONFREE=ON .. && make -j$(nproc) && make install && ldconfig && cd / && \
     wget https://github.com/shimat/opencvsharp/archive/${OPENCVSHARP_VERSION}.zip && \
-    unzip ${OPENCVSHARP_VERSION}.zip && rm ${OPENCVSHARP_VERSION}.zip && \
-    mv ${OPENCVSHARP_VERSION} opencvsharp && \
+    unzip ${OPENCVSHARP_VERSION}.zip && rm ${OPENCVSHARP_VERSION}.zip && \    
     #wget https://www.m.motiontek.cn/opencv/opencvsharp-${OPENCVSHARP_VERSION}.zip && \
     #unzip opencvsharp-${OPENCVSHARP_VERSION}.zip && rm opencvsharp-${OPENCVSHARP_VERSION}.zip && \
-    #mv opencvsharp-${OPENCVSHARP_VERSION} opencvsharp && \
+    mv opencvsharp-${OPENCVSHARP_VERSION} opencvsharp && \
     mkdir /opencvsharp/make && cd /opencvsharp/make && \
     cmake -D CMAKE_INSTALL_PREFIX=/opencvsharp/make \
     -D OpenCV_DIR=/opencv/install/lib/cmake/opencv4 /opencvsharp/src && \
@@ -77,6 +75,11 @@ RUN wget https://github.com/opencv/opencv/archive/${OPENCV_VERSION}.zip && \
     cp /opencvsharp/make/OpenCvSharpExtern/libOpenCvSharpExtern.so /usr/lib/ && \
     rm -rf /opencvsharp
 
+RUN ln -s /usr/bin/idle3 /usr/bin/idle && \
+    ln -s /usr/bin/pydoc3 /usr/bin/pydoc && \
+    ln -s /usr/bin/python3 /usr/bin/python && \
+    ln -s /usr/bin/python3-config /usr/bin/python-config
+    
 WORKDIR /app
 COPY requirement_web_cpu.txt requirement.txt
 RUN python -m pip install --upgrade pip && pip3 install -r requirement.txt
