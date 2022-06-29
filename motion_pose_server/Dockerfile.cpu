@@ -1,4 +1,4 @@
-FROM shimat/ubuntu20-dotnet5-opencv4.5.3:20210821
+FROM ubuntu:20.04
 
 MAINTAINER <wangming@motiontek.cn>
 
@@ -13,17 +13,118 @@ WORKDIR /
 #     update-locale LANG=en_US.UTF-8
 
 RUN apt update && apt upgrade -y && \
-    DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends python3 \
-    python3-pip python3-opencv libpython3-dev ffmpeg locales && \
+    DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends unzip wget curl git g++ gcc \
+    ca-certificates build-essential cmake ffmpeg locales libgdiplus \
+    libopencv-core-dev libopencv-highgui-dev libopencv-imgproc-dev \
+    libopencv-video-dev libopencv-calib3d-dev libopencv-features2d-dev \
+    pkg-config libavcodec-dev libavformat-dev libswscale-dev libv4l-dev \
+    libxvidcore-dev libx264-dev libjpeg-dev libpng-dev libtiff-dev \
+    netbase autoconf automake bzip2 dpkg-dev file imagemagick libbz2-dev libc6-dev \
+    libcurl4-openssl-dev libdb-dev libevent-dev libffi-dev libgdbm-dev libglib2.0-dev \
+    libgmp-dev libkrb5-dev liblzma-dev libmagickcore-dev libmagickwand-dev \
+    libmaxminddb-dev libncurses5-dev libncursesw5-dev libpq-dev libreadline-dev \
+    libsqlite3-dev libssl-dev libtool libwebp-dev libxml2-dev libxslt-dev libyaml-dev make \
+    patch xz-utils zlib1g-dev libbluetooth-dev tk-dev uuid-dev libopus-dev libopus0 opus-tools \
+    apt-transport-https gnupg dirmngr zip yasm libvpx-dev libass-dev libfreetype6-dev \
+    openexr libgnutls28-dev libmp3lame-dev libvorbis-dev texinfo \
+    libunistring-dev libx265-dev libnuma-dev libfdk-aac-dev && \
     apt clean && \
     rm -rf /var/lib/apt/lists/*
 
 RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
 
-RUN ln -s /usr/bin/idle3 /usr/bin/idle && \
-    ln -s /usr/bin/pydoc3 /usr/bin/pydoc && \
-    ln -s /usr/bin/python3 /usr/bin/python && \
-    ln -s /usr/bin/python3-config /usr/bin/python-config
+# install python
+ENV GPG_KEY=A035C8C19219BA821ECEA86B64E628F8D684696D
+ENV PYTHON_VERSION=3.10.5
+RUN wget -O python.tar.xz \
+    "https://www.python.org/ftp/python/${PYTHON_VERSION%%[a-z]*}/Python-$PYTHON_VERSION.tar.xz" && \
+    wget -O python.tar.xz.asc \
+    "https://www.python.org/ftp/python/${PYTHON_VERSION%%[a-z]*}/Python-$PYTHON_VERSION.tar.xz.asc" && \
+    export GNUPGHOME="$(mktemp -d)" && \
+    gpg --batch --keyserver hkps://keys.openpgp.org --recv-keys "$GPG_KEY" && \
+    gpg --batch --verify python.tar.xz.asc python.tar.xz && \
+    { command -v gpgconf > /dev/null && gpgconf --kill all || :; } && \
+    rm -rf "$GNUPGHOME" python.tar.xz.asc && mkdir -p /usr/src/python && \
+    tar -xJC /usr/src/python --strip-components=1 -f python.tar.xz && \
+    rm python.tar.xz && cd /usr/src/python && \
+    gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)" && \
+    ./configure \
+    --build="$gnuArch" \
+    --enable-loadable-sqlite-extensions \
+    --enable-optimizations \
+    --enable-option-checking=fatal \
+    --enable-shared \
+    --with-lto \
+    --with-system-expat \
+    --with-system-ffi && \
+    #--without-ensurepip && \
+    make -j "$(nproc)" && make install && \
+    rm -rf /usr/src/python && \
+    ldconfig && python3 --version
+
+RUN ln -s /usr/local/bin/idle3 /usr/bin/idle && \
+    ln -s /usr/local/bin/pydoc3 /usr/bin/pydoc && \
+    ln -s /usr/local/bin/python3 /usr/bin/python && \
+    ln -s /usr/local/bin/python3-config /usr/bin/python-config && \
+    python -m ensurepip --upgrade
+
+ENV OPENCV_VERSION=4.5.3
+ENV OPENCVSHARP_VERSION=4.5.3.20211228
+
+RUN wget https://github.com/opencv/opencv/archive/${OPENCV_VERSION}.zip && \
+    unzip ${OPENCV_VERSION}.zip && rm ${OPENCV_VERSION}.zip && \
+    mv opencv-${OPENCV_VERSION} opencv && \
+    wget https://github.com/opencv/opencv_contrib/archive/${OPENCV_VERSION}.zip && \
+    unzip ${OPENCV_VERSION}.zip && rm ${OPENCV_VERSION}.zip && \
+    mv opencv_contrib-${OPENCV_VERSION} opencv_contrib && \
+    cd opencv && mkdir build && cd build && \
+    cmake -D OPENCV_EXTRA_MODULES_PATH=/opencv_contrib/modules \
+    -D CMAKE_INSTALL_PREFIX=/opencv/install \
+    -D CMAKE_BUILD_TYPE=RELEASE \
+    -D BUILD_SHARED_LIBS=OFF \
+    -D ENABLE_CXX11=ON \
+    -D BUILD_EXAMPLES=OFF \
+    -D BUILD_DOCS=OFF \
+    -D BUILD_PERF_TESTS=OFF \
+    -D BUILD_TESTS=OFF \
+    -D BUILD_JAVA=OFF \
+    -D BUILD_opencv_app=OFF \
+    -D BUILD_opencv_barcode=OFF \
+    -D BUILD_opencv_java_bindings_generator=OFF \
+    -D BUILD_opencv_js_bindings_generator=OFF \
+    -D BUILD_opencv_python_bindings_generator=OFF \
+    -D BUILD_opencv_python_tests=OFF \
+    -D BUILD_opencv_ts=OFF \
+    -D BUILD_opencv_js=OFF \
+    -D BUILD_opencv_bioinspired=OFF \
+    -D BUILD_opencv_ccalib=OFF \
+    -D BUILD_opencv_datasets=OFF \
+    -D BUILD_opencv_dnn_objdetect=OFF \
+    -D BUILD_opencv_dpm=OFF \
+    -D BUILD_opencv_fuzzy=OFF \
+    -D BUILD_opencv_gapi=OFF \
+    -D BUILD_opencv_intensity_transform=OFF \
+    -D BUILD_opencv_mcc=OFF \
+    -D BUILD_opencv_objc_bindings_generator=OFF \
+    -D BUILD_opencv_rapid=OFF \
+    -D BUILD_opencv_reg=OFF \
+    -D BUILD_opencv_stereo=OFF \
+    -D BUILD_opencv_structured_light=OFF \
+    -D BUILD_opencv_surface_matching=OFF \
+    -D BUILD_opencv_videostab=OFF \
+    -D BUILD_opencv_wechat_qrcode=OFF \
+    -D WITH_GSTREAMER=OFF \
+    -D WITH_ADE=OFF \
+    -D OPENCV_ENABLE_NONFREE=ON .. && make -j$(nproc) && make install && ldconfig && cd / && \
+    wget https://github.com/shimat/opencvsharp/archive/${OPENCVSHARP_VERSION}.zip && \
+    unzip ${OPENCVSHARP_VERSION}.zip && rm ${OPENCVSHARP_VERSION}.zip && \
+    mv opencvsharp-${OPENCVSHARP_VERSION} opencvsharp && \
+    mkdir /opencvsharp/make && cd /opencvsharp/make && \
+    cmake -D CMAKE_INSTALL_PREFIX=/opencvsharp/make \
+    -D OpenCV_DIR=/opencv/install/lib/cmake/opencv4 /opencvsharp/src && \
+    make -j$(nproc) && make install && rm -rf /opencv && rm -rf /opencv_contrib && \
+    cp /opencvsharp/make/lib/libOpenCvSharpExtern.so /usr/lib/ && \
+    rm -rf /opencvsharp
 
 WORKDIR /app
 COPY requirement_web_cpu.txt requirement.txt
@@ -31,11 +132,7 @@ RUN python -m pip install --upgrade pip && pip3 install -r requirement.txt
 
 RUN python -c 'import mediapipe as mp; mp.solutions.pose._download_oss_pose_landmark_model(2); mp.solutions.pose._download_oss_pose_landmark_model(0)'
 
-#RUN apt-get update && apt-get install -y --no-install-recommends locales libgdiplus && \
-#RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
-
 EXPOSE 8080/tcp
-#COPY . .
 
 ENV FLASK_APP=web
 ENV FLASK_ENV=production
@@ -43,6 +140,3 @@ ENV LC_ALL=en_US.UTF-8
 ENV LANG=en_US.UTF-8
 
 CMD ["bash", "start.sh"]
-#RUN mkdir -p logs && nohup bash start_celery.sh >> logs/celery.log 2>&1
-#CMD ["python", "run.py"]
-#CMD ["celery", "-A tasks.pose worker --loglevel=INFO --concurrency=1"]
