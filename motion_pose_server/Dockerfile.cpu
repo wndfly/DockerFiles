@@ -130,7 +130,10 @@ WORKDIR /app
 COPY requirement_web_cpu.txt requirement.txt
 RUN python -m pip install --upgrade pip && pip3 install -r requirement.txt
 
-RUN python -c 'import mediapipe as mp; mp.solutions.pose._download_oss_pose_landmark_model(2); mp.solutions.pose._download_oss_pose_landmark_model(0)'
+#RUN python -c 'import mediapipe as mp; mp.solutions.pose._download_oss_pose_landmark_model(2); mp.solutions.pose._download_oss_pose_landmark_model(0)'
+
+COPY mp_old_model/* /usr/local/lib/python3.10/site-packages/mediapipe/modules/pose_landmark/
+RUN unlink /etc/localtime && ln -s /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 
 EXPOSE 8080/tcp
 
