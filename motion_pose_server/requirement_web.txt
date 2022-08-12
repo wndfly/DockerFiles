@@ -1,6 +1,8 @@
 #Flask
 celery
-#eventlet
+gunicorn
+eventlet
+gevent
 #pyjwt[crypto]
 redis
 blinker
