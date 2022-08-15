@@ -12,4 +12,5 @@ itsdangerous==2.0.1
 flask_mongoengine
 oss2
 aliyun-python-sdk-sts
+aliyun-python-sdk-eci
 aliyun-python-sdk-core
