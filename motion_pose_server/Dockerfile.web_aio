@@ -2,23 +2,24 @@ FROM wndfly/mediapipe_python_cudagl10.1_ubuntu18.04_py3.10:latest
 
 MAINTAINER <wangming@motiontek.cn>
 
-WORKDIR /
-
 WORKDIR /app
 COPY requirement_web_aio.txt requirement.txt
 RUN python -m pip install --upgrade pip && pip3 install -r requirement.txt
 
-ENV HTTP_PROXY=http://10.0.0.105:1087
-ENV HTTPS_PROXY=http://10.0.0.105:1087
-RUN python -c 'import mediapipe as mp; mp.solutions.pose._download_oss_pose_landmark_model(2); mp.solutions.pose._download_oss_pose_landmark_model(0)'
-ENV HTTP_PROXY=
-ENV HTTPS_PROXY=
+# ENV HTTP_PROXY=http://10.0.0.105:1087
+# ENV HTTPS_PROXY=http://10.0.0.105:1087
+# RUN python -c 'import mediapipe as mp; mp.solutions.pose._download_oss_pose_landmark_model(2); mp.solutions.pose._download_oss_pose_landmark_model(0)'
+# ENV HTTP_PROXY=
+# ENV HTTPS_PROXY=
 
+COPY mp_old_model/* /usr/local/lib/python3.10/site-packages/mediapipe/modules/pose_landmark/
+RUN unlink /etc/localtime && ln -s /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
 
 EXPOSE 8181/tcp
 #COPY . .
 
+ENV FLASK_DEBUG=1
 ENV QUART_APP=web_aio
 ENV QUART_ENV=development
 ENV LC_ALL=en_US.UTF-8
