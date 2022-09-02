@@ -1,4 +1,4 @@
-FROM mediapipe_python_cudagl10.1_ubuntu18.04_py3.10:latest
+FROM wndfly/mediapipe_python_cudagl10.1_ubuntu18.04_py3.10:latest
 
 MAINTAINER <wangming@motiontek.cn>
 
