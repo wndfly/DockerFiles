@@ -71,18 +71,21 @@ WORKDIR /app
 COPY requirement_web.txt requirement.txt
 RUN python -m pip install --upgrade pip && pip3 install -r requirement.txt
 
-ENV HTTP_PROXY=http://10.0.0.105:1087
-ENV HTTPS_PROXY=http://10.0.0.105:1087
-RUN python -c 'import mediapipe as mp; mp.solutions.pose._download_oss_pose_landmark_model(2); mp.solutions.pose._download_oss_pose_landmark_model(0)'
-ENV HTTP_PROXY=
-ENV HTTPS_PROXY=
+# ENV HTTP_PROXY=http://10.0.0.105:1087
+# ENV HTTPS_PROXY=http://10.0.0.105:1087
+# RUN python -c 'import mediapipe as mp; mp.solutions.pose._download_oss_pose_landmark_model(2); mp.solutions.pose._download_oss_pose_landmark_model(0)'
+# ENV HTTP_PROXY=
+# ENV HTTPS_PROXY=
 
+COPY mp_old_model/* /usr/local/lib/python3.10/site-packages/mediapipe/modules/pose_landmark/
+RUN unlink /etc/localtime && ln -s /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 #RUN apt-get update && apt-get install -y --no-install-recommends locales libgdiplus && \
 RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
 
 EXPOSE 8080/tcp
 #COPY . .
 
+ENV FLASK_DEBUG=1
 ENV FLASK_APP=web
 ENV FLASK_ENV=development
 ENV LC_ALL=en_US.UTF-8

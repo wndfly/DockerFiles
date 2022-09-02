@@ -134,12 +134,15 @@ RUN python -m pip install --upgrade pip && pip3 install -r requirement.txt
 
 COPY mp_old_model/* /usr/local/lib/python3.10/site-packages/mediapipe/modules/pose_landmark/
 RUN unlink /etc/localtime && ln -s /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+#RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
 
 EXPOSE 8080/tcp
 
+ENV FLASK_DEBUG=0
 ENV FLASK_APP=web
 ENV FLASK_ENV=production
 ENV LC_ALL=en_US.UTF-8
 ENV LANG=en_US.UTF-8
 
-CMD ["bash", "start.sh"]
+
+CMD ["bash", "start_prod.sh"]
