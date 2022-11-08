@@ -145,7 +145,7 @@ RUN mkdir /dl && cd /dl && \
     -D GPU_MODE=CPU_ONLY && make -j `nproc` && make install && mkdir /usr/local/python/openpose/models/ && \
     cd .. && cp -r models/face /usr/local/python/openpose/models/ && \
     cp -r models/hand /usr/local/python/openpose/models/ && cp -r models/pose /usr/local/python/openpose/models/ && \
-    rm /dl && rm /openpose
+    rm -rf /dl && rm -rf /openpose
 # openpose build end
 
 #RUN python -c 'import mediapipe as mp; mp.solutions.pose._download_oss_pose_landmark_model(2); mp.solutions.pose._download_oss_pose_landmark_model(0)'
