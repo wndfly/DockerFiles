@@ -1,0 +1,16 @@
+FROM wndfly/motion_pose_server_web_op_cpu
+
+MAINTAINER <wangming@motiontek.cn>
+
+WORKDIR /app
+
+EXPOSE 8080/tcp
+
+ENV FLASK_DEBUG=0
+ENV FLASK_APP=web
+ENV FLASK_ENV=production
+ENV LC_ALL=en_US.UTF-8
+ENV LANG=en_US.UTF-8
+
+
+CMD ["bash", "start_prod.sh"]
