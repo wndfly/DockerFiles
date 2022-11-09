@@ -120,10 +120,6 @@ RUN wget https://github.com/opencv/opencv/archive/${OPENCV_VERSION}.zip && \
     cp /opencvsharp/make/lib/libOpenCvSharpExtern.so /usr/lib/ && \
     rm -rf /opencvsharp
 
-WORKDIR /app
-COPY requirement_web_cpu.txt requirement.txt
-RUN python -m pip install --upgrade pip && pip3 install -r requirement.txt
-
 # openpose build begin
 RUN python -m pip install --upgrade numpy opencv-python
 ENV PYTHON_EXECUTABLE=/usr/local/bin/python3.10
@@ -147,6 +143,10 @@ RUN mkdir /dl && cd /dl && \
     cp -r models/hand /usr/local/python/openpose/models/ && cp -r models/pose /usr/local/python/openpose/models/ && \
     rm -rf /dl && rm -rf /openpose
 # openpose build end
+
+WORKDIR /app
+COPY requirement_web_cpu.txt requirement.txt
+RUN python -m pip install --upgrade pip && pip3 install -r requirement.txt
 
 #RUN python -c 'import mediapipe as mp; mp.solutions.pose._download_oss_pose_landmark_model(2); mp.solutions.pose._download_oss_pose_landmark_model(0)'
 
