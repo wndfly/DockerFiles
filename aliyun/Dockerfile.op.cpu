@@ -1,4 +1,4 @@
-FROM wndfly/motion_pose_server_web_cpu
+FROM wndfly/motion_pose_server_web_op_cpu
 
 MAINTAINER <wangming@motiontek.cn>
 
