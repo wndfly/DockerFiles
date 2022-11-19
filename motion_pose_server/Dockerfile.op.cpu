@@ -137,7 +137,7 @@ RUN mkdir /dl && cd /dl && \
     cmake .. -D DOWNLOAD_BODY_25_MODEL=ON -D DOWNLOAD_BODY_COCO_MODEL=ON -D DOWNLOAD_BODY_MPI_MODEL=ON \
     -D DOWNLOAD_FACE_MODEL=ON -D DOWNLOAD_HAND_MODEL=ON -D BUILD_PYTHON=ON -D PYBIND11_INSTALL=ON \
     -D PYTHON_EXECUTABLE=$PYTHON_EXECUTABLE -D PYTHON_LIBRARY=$PYTHON_LIBRARY -D BUILD_CAFFE=ON \
-    -D BUILD_EXAMPLES=ON -D BUILD_SHARED_LIBS=ON -D CMAKE_BUILD_TYPE=Release -D DL_FRAMEWORK=CAFFE \
+    -D BUILD_EXAMPLES=OFF -D BUILD_SHARED_LIBS=ON -D CMAKE_BUILD_TYPE=Release -D DL_FRAMEWORK=CAFFE \
     -D GPU_MODE=CPU_ONLY -D INSTRUCTION_SET=AVX2 -D WITH_EIGEN=FIND && make -j `nproc` && make install && \
     mkdir /usr/local/python/openpose/models/ && cd .. && cp -r models/face /usr/local/python/openpose/models/ && \
     cp -r models/hand /usr/local/python/openpose/models/ && cp -r models/pose /usr/local/python/openpose/models/ && \

@@ -50,6 +50,50 @@ RUN wget https://github.com/opencv/opencv/archive/${OPENCV_VERSION}.zip && \
     cp /opencvsharp/make/OpenCvSharpExtern/libOpenCvSharpExtern.so /usr/lib/ && \
     rm -rf /opencvsharp
 
+# openpose build begin
+RUN apt remove -y cmake && apt update && \
+    DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends freeglut3 freeglut3-dev \
+    libxmu-dev libxi-dev libeigen3-dev libgoogle-glog-dev libgflags-dev libatlas-base-dev libsuitesparse-dev \
+    libopencv-dev libatlas-base-dev libprotobuf-dev libleveldb-dev libsnappy-dev libhdf5-serial-dev \
+    protobuf-compiler libboost-all-dev liblmdb-dev && \
+    apt clean && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN mkdir /depends && cd /depends/ && \
+    wget https://github.com/Kitware/CMake/releases/download/v3.24.2/cmake-3.24.2.tar.gz && \
+    tar -xzf cmake-3.24.2.tar.gz && cd cmake-3.24.2/ && \
+    ./configure && ./bootstrap && make -j`nproc` && make install -j`nproc` && cd / && rm -rf /depends
+
+RUN rm /usr/bin/python3 && rm /usr/bin/python && \
+    ln -s /usr/local/bin/python3 /usr/bin/python3 && \
+    ln -s /usr/local/bin/python3 /usr/bin/python && \
+    python -m pip install --upgrade numpy opencv-python
+ENV PYTHON_EXECUTABLE=/usr/local/bin/python3.9
+ENV PYTHON_LIBRARY=/usr/local/lib/libpython3.9.so
+RUN mkdir /dl && cd /dl && \
+    wget https://github.com/CMU-Perceptual-Computing-Lab/openpose/archive/refs/tags/v1.7.0.tar.gz && \
+    wget https://github.com/pybind/pybind11/archive/085a29436a8c472caaaf7157aa644b571079bcaa.zip && \
+    wget https://github.com/CMU-Perceptual-Computing-Lab/caffe/archive/b5ede488952e40861e84e51a9f9fd8fe2395cc8a.zip &&\
+    unzip 085a29436a8c472caaaf7157aa644b571079bcaa.zip && unzip b5ede488952e40861e84e51a9f9fd8fe2395cc8a.zip && \
+    tar -xzf v1.7.0.tar.gz && mv openpose-1.7.0 /openpose && \
+    rm -rf /openpose/3rdparty/caffe && rm -rf /openpose/3rdparty/pybind11 && \
+    mv caffe-b5ede488952e40861e84e51a9f9fd8fe2395cc8a /openpose/3rdparty/caffe && \
+    mv pybind11-085a29436a8c472caaaf7157aa644b571079bcaa /openpose/3rdparty/pybind11 && \
+    cd /openpose/ && mkdir build && cd build && \
+    sed -ie 's/set(AMPERE "80 86")/#&/g'  ../cmake/Cuda.cmake && \
+    sed -ie 's/set(AMPERE "80 86")/#&/g'  ../3rdparty/caffe/cmake/Cuda.cmake && \
+    cmake .. -D DOWNLOAD_BODY_25_MODEL=ON -D DOWNLOAD_BODY_COCO_MODEL=ON -D DOWNLOAD_BODY_MPI_MODEL=ON \
+    -D DOWNLOAD_FACE_MODEL=ON -D DOWNLOAD_HAND_MODEL=ON -D BUILD_PYTHON=ON -D PYBIND11_INSTALL=ON \
+    -D PYTHON_EXECUTABLE=$PYTHON_EXECUTABLE -D PYTHON_LIBRARY=$PYTHON_LIBRARY -D BUILD_CAFFE=ON \
+    -D BUILD_EXAMPLES=OFF -D BUILD_SHARED_LIBS=ON -D CMAKE_BUILD_TYPE=Release -D DL_FRAMEWORK=CAFFE \
+    -D CUDA_USE_STATIC_CUDA_RUNTIME=ON -D GPU_MODE=CUDA -D CUDA_VERBOSE_BUILD=ON -D CUDA_ARCH=Manual \
+    -D USE_CUDNN=OFF -D CUDA_ARCH_BIN="60 61 62 70 72 75" -D CUDA_ARCH_PTX=60 && \
+    make -j `nproc` && make install && \
+    mkdir /models/ && cd .. && cp -r models/face /models/ && \
+    cp -r models/hand /models/ && cp -r models/pose /models/ && \
+    rm -rf /dl && mv /openpose/build/ /build && rm -rf /openpose/ && mkdir /openpose/ && mv /build /openpose/
+# openpose build end
+
 WORKDIR /app
 COPY requirement_web.txt requirement.txt
 RUN python -m pip install --upgrade pip && pip3 install -r requirement.txt
@@ -58,7 +102,7 @@ RUN python -m pip install --upgrade pip && pip3 install -r requirement.txt
 # ENV HTTP_PROXY=
 # ENV HTTPS_PROXY=
 
-COPY mp_old_model/* /usr/local/lib/python3.10/site-packages/mediapipe/modules/pose_landmark/
+COPY mp_old_model/* /usr/local/lib/python3.9/site-packages/mediapipe/modules/pose_landmark/
 RUN unlink /etc/localtime && ln -s /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 #RUN apt-get update && apt-get install -y --no-install-recommends locales libgdiplus && \
 RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
