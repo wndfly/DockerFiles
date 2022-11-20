@@ -7,13 +7,31 @@ WORKDIR /
 ENV OPENCV_VERSION=4.6.0
 ENV OPENCVSHARP_VERSION=4.6.0.20220608
 
+RUN apt remove -y cmake && apt update && \
+    DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends freeglut3 freeglut3-dev \
+    libxmu-dev libxi-dev libeigen3-dev libgoogle-glog-dev libgflags-dev libatlas-base-dev libsuitesparse-dev \
+    libopencv-dev libatlas-base-dev libprotobuf-dev libleveldb-dev libsnappy-dev libhdf5-serial-dev \
+    protobuf-compiler libboost-all-dev liblmdb-dev && \
+    apt clean && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN mkdir /depends && cd /depends/ && \
+    wget https://github.com/Kitware/CMake/releases/download/v3.24.2/cmake-3.24.2.tar.gz && \
+    tar -xzf cmake-3.24.2.tar.gz && cd cmake-3.24.2/ && \
+    ./configure && ./bootstrap && make -j`nproc` && make install -j`nproc` && cd / && rm -rf /depends
+
+RUN rm /usr/bin/python3 && rm /usr/bin/python && \
+    ln -s /usr/local/bin/python3 /usr/bin/python3 && \
+    ln -s /usr/local/bin/python3 /usr/bin/python && \
+    python -m pip install --upgrade numpy opencv-python
+
 #COPY depends/* /
 
 RUN wget https://github.com/opencv/opencv/archive/${OPENCV_VERSION}.zip && \
-    unzip opencv-${OPENCV_VERSION}.zip && rm opencv-${OPENCV_VERSION}.zip && \
+    unzip ${OPENCV_VERSION}.zip && rm ${OPENCV_VERSION}.zip && \
     mv opencv-${OPENCV_VERSION} opencv && \
     wget https://github.com/opencv/opencv_contrib/archive/${OPENCV_VERSION}.zip && \
-    unzip opencv_contrib-${OPENCV_VERSION}.zip && rm opencv_contrib-${OPENCV_VERSION}.zip && \
+    unzip ${OPENCV_VERSION}.zip && rm ${OPENCV_VERSION}.zip && \
     mv opencv_contrib-${OPENCV_VERSION} opencv_contrib && \
     cd opencv && mkdir build && cd build && \
     cmake -D OPENCV_EXTRA_MODULES_PATH=/opencv_contrib/modules \
@@ -41,7 +59,7 @@ RUN wget https://github.com/opencv/opencv/archive/${OPENCV_VERSION}.zip && \
     -D WITH_PROTOBUF=ON -D OPENCV_ENABLE_NONFREE=ON -D WITH_EIGEN=ON -D WITH_FFMPEG=ON .. && \
     make -j$(nproc) && make install && ldconfig && cd / && \
     wget https://github.com/shimat/opencvsharp/archive/${OPENCVSHARP_VERSION}.zip && \
-    unzip opencvsharp-${OPENCVSHARP_VERSION}.zip && rm opencvsharp-${OPENCVSHARP_VERSION}.zip && \
+    unzip ${OPENCVSHARP_VERSION}.zip && rm ${OPENCVSHARP_VERSION}.zip && \
     mv opencvsharp-${OPENCVSHARP_VERSION} opencvsharp && \
     mkdir /opencvsharp/make && cd /opencvsharp/make && \
     cmake -D CMAKE_INSTALL_PREFIX=/opencvsharp/make \
@@ -51,23 +69,6 @@ RUN wget https://github.com/opencv/opencv/archive/${OPENCV_VERSION}.zip && \
     rm -rf /opencvsharp
 
 # openpose build begin
-RUN apt remove -y cmake && apt update && \
-    DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends freeglut3 freeglut3-dev \
-    libxmu-dev libxi-dev libeigen3-dev libgoogle-glog-dev libgflags-dev libatlas-base-dev libsuitesparse-dev \
-    libopencv-dev libatlas-base-dev libprotobuf-dev libleveldb-dev libsnappy-dev libhdf5-serial-dev \
-    protobuf-compiler libboost-all-dev liblmdb-dev && \
-    apt clean && \
-    rm -rf /var/lib/apt/lists/*
-
-RUN mkdir /depends && cd /depends/ && \
-    wget https://github.com/Kitware/CMake/releases/download/v3.24.2/cmake-3.24.2.tar.gz && \
-    tar -xzf cmake-3.24.2.tar.gz && cd cmake-3.24.2/ && \
-    ./configure && ./bootstrap && make -j`nproc` && make install -j`nproc` && cd / && rm -rf /depends
-
-RUN rm /usr/bin/python3 && rm /usr/bin/python && \
-    ln -s /usr/local/bin/python3 /usr/bin/python3 && \
-    ln -s /usr/local/bin/python3 /usr/bin/python && \
-    python -m pip install --upgrade numpy opencv-python
 ENV PYTHON_EXECUTABLE=/usr/local/bin/python3.9
 ENV PYTHON_LIBRARY=/usr/local/lib/libpython3.9.so
 RUN mkdir /dl && cd /dl && \
