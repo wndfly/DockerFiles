@@ -16,5 +16,5 @@ aliyun-python-sdk-sts
 aliyun-python-sdk-eci
 aliyun-python-sdk-core
 opencv-python
-openvino==2022.1.0
+#openvino==2022.1.0
 scipy

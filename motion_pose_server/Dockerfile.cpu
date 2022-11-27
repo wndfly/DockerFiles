@@ -123,6 +123,7 @@ RUN wget https://github.com/opencv/opencv/archive/${OPENCV_VERSION}.zip && \
 WORKDIR /app
 COPY requirement_web_cpu.txt requirement.txt
 RUN python -m pip install --upgrade pip && pip3 install -r requirement.txt
+#RUN python -m pip install --upgrade pip && pip3 install -r requirement.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 COPY models /models
 RUN unlink /etc/localtime && ln -s /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
