@@ -74,7 +74,7 @@ ENV PYTHON_LIBRARY=/usr/local/lib/libpython3.9.so
 RUN mkdir /dl && cd /dl && \
     wget https://github.com/CMU-Perceptual-Computing-Lab/openpose/archive/refs/tags/v1.7.0.tar.gz && \
     wget https://github.com/pybind/pybind11/archive/085a29436a8c472caaaf7157aa644b571079bcaa.zip && \
-    wget https://github.com/CMU-Perceptual-Computing-Lab/caffe/archive/b5ede488952e40861e84e51a9f9fd8fe2395cc8a.zip &&\
+    wget https://github.com/CMU-Perceptual-Computing-Lab/caffe/archive/b5ede488952e40861e84e51a9f9fd8fe2395cc8a.zip && \
     unzip 085a29436a8c472caaaf7157aa644b571079bcaa.zip && unzip b5ede488952e40861e84e51a9f9fd8fe2395cc8a.zip && \
     tar -xzf v1.7.0.tar.gz && mv openpose-1.7.0 /openpose && \
     rm -rf /openpose/3rdparty/caffe && rm -rf /openpose/3rdparty/pybind11 && \

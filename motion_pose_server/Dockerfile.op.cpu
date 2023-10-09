@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 
 MAINTAINER <wangming@motiontek.cn>
 
@@ -43,7 +43,7 @@ RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
 
 # install python
 ENV GPG_KEY=A035C8C19219BA821ECEA86B64E628F8D684696D
-ENV PYTHON_VERSION=3.10.5
+ENV PYTHON_VERSION=3.11.6
 RUN wget -O python.tar.xz \
     "https://www.python.org/ftp/python/${PYTHON_VERSION%%[a-z]*}/Python-$PYTHON_VERSION.tar.xz" && \
     wget -O python.tar.xz.asc \
@@ -76,8 +76,8 @@ RUN ln -s /usr/local/bin/idle3 /usr/bin/idle && \
     ln -s /usr/local/bin/python3-config /usr/bin/python-config && \
     python -m ensurepip --upgrade
 
-ENV OPENCV_VERSION=4.6.0
-ENV OPENCVSHARP_VERSION=4.6.0.20220608
+ENV OPENCV_VERSION=4.8.0
+ENV OPENCVSHARP_VERSION=4.8.0.20230711
 
 RUN wget https://github.com/opencv/opencv/archive/${OPENCV_VERSION}.zip && \
     unzip ${OPENCV_VERSION}.zip && rm ${OPENCV_VERSION}.zip && \
@@ -122,12 +122,12 @@ RUN wget https://github.com/opencv/opencv/archive/${OPENCV_VERSION}.zip && \
 
 # openpose build begin
 RUN python -m pip install --upgrade numpy opencv-python
-ENV PYTHON_EXECUTABLE=/usr/local/bin/python3.10
-ENV PYTHON_LIBRARY=/usr/local/lib/libpython3.10.so
+ENV PYTHON_EXECUTABLE=/usr/local/bin/python3.11
+ENV PYTHON_LIBRARY=/usr/local/lib/libpython3.11.so
 RUN mkdir /dl && cd /dl && \
     wget https://github.com/CMU-Perceptual-Computing-Lab/openpose/archive/refs/tags/v1.7.0.tar.gz && \
     wget https://github.com/pybind/pybind11/archive/085a29436a8c472caaaf7157aa644b571079bcaa.zip && \
-    wget https://github.com/CMU-Perceptual-Computing-Lab/caffe/archive/b5ede488952e40861e84e51a9f9fd8fe2395cc8a.zip &&\
+    wget https://github.com/CMU-Perceptual-Computing-Lab/caffe/archive/b5ede488952e40861e84e51a9f9fd8fe2395cc8a.zip && \
     unzip 085a29436a8c472caaaf7157aa644b571079bcaa.zip && unzip b5ede488952e40861e84e51a9f9fd8fe2395cc8a.zip && \
     tar -xzf v1.7.0.tar.gz && mv openpose-1.7.0 /openpose && \
     rm -rf /openpose/3rdparty/caffe && rm -rf /openpose/3rdparty/pybind11 && \
@@ -150,8 +150,8 @@ RUN python -m pip install --upgrade pip && pip3 install -r requirement.txt
 
 #RUN python -c 'import mediapipe as mp; mp.solutions.pose._download_oss_pose_landmark_model(2); mp.solutions.pose._download_oss_pose_landmark_model(0)'
 
-COPY mp_old_model/* /usr/local/lib/python3.10/site-packages/mediapipe/modules/pose_landmark/
-RUN unlink /etc/localtime && ln -s /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+COPY mp_old_model/* /usr/local/lib/python3.11/site-packages/mediapipe/modules/pose_landmark/
+#RUN unlink /etc/localtime && ln -s /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 #RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
 
 EXPOSE 8080/tcp
