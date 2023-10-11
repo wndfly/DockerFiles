@@ -1,5 +1,5 @@
 #Flask
-#mediapipe
+mediapipe
 celery
 gunicorn
 eventlet
@@ -22,10 +22,5 @@ aliyun-python-sdk-sts
 aliyun-python-sdk-eci
 aliyun-python-sdk-core
 opencv-python
-#openvino==2022.1.0
-#openvino==2022.2.0
-#FutureWarning: OpenVINO Inference Engine Python API is deprecated and will be removed in 2024.0 release
-openvino==2023.1.0
-#numpy=1.23.1
 numpy
 scipy
